@@ -14,7 +14,6 @@ I train using VR cardio (Meta Quest 3) alongside strength work on a home pull-up
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0bd16165-c43e-4dac-9667-34c2a2676650" width="220" alt="Polar H10 device">
-  <img src="https://github.com/user-attachments/assets/1cd440d1-9705-4b6d-991d-81e609199e17" width="220" alt="Pull-up bar setup">
 </p>
 
 Sessions happen in a fixed order - warmup, strength, VR cardio to exhaustion - across a rotation of games:
