@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Training Log</title>
+<style>
+  :root{
+    --black:#0a0a0a;
+    --panel:#141414;
+    --panel2:#1c1c1c;
+    --yellow:#F5C518;
+    --yellow-dim:#8a7010;
+    --text:#e8e6df;
+    --text-dim:#8a8a85;
+    --border:#2a2a2a;
+    --danger:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--black);
+    color:var(--text);
+    font-family:'Courier New',ui-monospace,monospace;
+    margin:0;
+    padding:16px;
+    max-width:720px;
+    margin:0 auto;
+  }
+  h1{
+    font-size:18px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--yellow);
+    border-bottom:2px solid var(--yellow);
+    padding-bottom:10px;
+    margin-bottom:4px;
+  }
+  .subtitle{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-bottom:8px;
+    letter-spacing:0.5px;
+  }
+  .day-tabs{
+    display:flex;
+    gap:4px;
+    overflow-x:auto;
+    margin-bottom:16px;
+    padding-bottom:4px;
+  }
+  .day-tab{
+    flex:0 0 auto;
+    padding:8px 10px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    font-family:inherit;
+    font-size:11px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .day-tab.active{
+    background:var(--yellow);
+    color:var(--black);
+    border-color:var(--yellow);
+    font-weight:bold;
+  }
+  .day-tab.has-data:not(.active)::after{
+    content:" •";
+    color:var(--yellow);
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--yellow-dim);
+    margin-bottom:5px;
+  }
+  input, textarea{
+    width:100%;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px;
+    font-family:inherit;
+    font-size:14px;
+  }
+  input:focus, textarea:focus{
+    outline:none;
+    border-color:var(--yellow);
+  }
+  textarea{resize:vertical;min-height:50px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  select{
+    width:100%;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px;
+    font-family:inherit;
+    font-size:14px;
+  }
+  .btn{
+    background:var(--yellow);
+    color:var(--black);
+    border:none;
+    padding:12px;
+    font-family:inherit;
+    font-weight:bold;
+    font-size:13px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    width:100%;
+    margin-top:4px;
+  }
+  .btn:active{background:var(--yellow-dim);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-secondary{
+    background:transparent;
+    color:var(--text-dim);
+    border:1px solid var(--border);
+  }
+  .btn-danger{
+    background:transparent;
+    color:var(--danger);
+    border:1px solid var(--danger);
+  }
+  .status{
+    font-size:11px;
+    color:var(--text-dim);
+    text-align:center;
+    margin-top:8px;
+    min-height:14px;
+  }
+  .error{
+    font-size:12px;
+    color:var(--danger);
+    text-align:center;
+    margin-top:10px;
+    min-height:14px;
+  }
+  .export-box{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    padding:12px;
+    font-size:12px;
+    white-space:pre-wrap;
+    margin-top:12px;
+    line-height:1.5;
+    color:var(--text);
+    max-height:400px;
+    overflow-y:auto;
+  }
+  .section-label{
+    color:var(--yellow);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:10px;
+    font-weight:bold;
+  }
+  .divider{
+    border-top:1px solid var(--border);
+    margin:16px 0;
+  }
+  .topbar{
+    background:var(--panel);
+    border:1px solid var(--border);
+    padding:10px 12px;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .topbar .status{margin:0;text-align:left;}
+  .topbar-actions{display:flex;gap:6px;}
+  .topbar-actions button{
+    background:transparent;
+    color:var(--text-dim);
+    border:1px solid var(--border);
+    font-family:inherit;
+    font-size:11px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+  .login-wrap{
+    max-width:360px;
+    margin:60px auto;
+    background:var(--panel);
+    border:1px solid var(--border);
+    padding:24px;
+  }
+  .guest-note{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    padding:10px;
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:14px;
+    text-align:center;
+  }
+  .locked-note{
+    background:var(--panel2);
+    border:1px solid var(--danger);
+    padding:12px;
+    font-size:12px;
+    color:var(--text);
+    margin-bottom:14px;
+  }
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN VIEW ================= -->
+<div id="loginView">
+  <div class="login-wrap">
+    <h1 style="border:none;">Training Log</h1>
+    <div class="field" style="margin-top:20px;">
+      <label>Username or Email</label>
+      <input type="text" id="loginId" placeholder="username or email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="password">
+    </div>
+    <button class="btn" id="loginBtn">Log In</button>
+    <div class="error" id="loginError"></div>
+    <div class="guest-note">Guest access: username <b>guest</b> / password <b>guest</b> — read-only demo data.</div>
+  </div>
+</div>
+
+<!-- ================= APP VIEW ================= -->
+<div id="appView" class="hidden">
+
+<h1>Weekly Training Log</h1>
+<div class="subtitle">Log after each session &middot; H10 + VR + strength &middot; synced via Firebase</div>
+
+<div class="topbar">
+  <span class="status" id="syncStatus">Connected</span>
+  <div class="topbar-actions">
+    <button id="settingsBtn">⚙ Settings</button>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+</div>
+
+<div id="guestBanner" class="locked-note hidden">Guest mode — viewing demo data. Saving and settings are disabled.</div>
+
+<div class="day-tabs" id="dayTabs"></div>
+
+<div class="panel">
+  <div class="section-label">Session — Strength</div>
+  <div class="field">
+    <label>Warmup / APT stretching done</label>
+    <select id="warmup">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Pull-ups (sets x reps)</label>
+    <input type="text" id="pullups" placeholder="e.g. 4x6">
+  </div>
+  <div class="field">
+    <label>Band exercises (brief note)</label>
+    <input type="text" id="bands" placeholder="e.g. rows 3x12, curls 3x15">
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Session — VR Cardio</div>
+  <div class="row2">
+    <div class="field">
+      <label>Duration (min)</label>
+      <input type="number" id="vrDuration" placeholder="0">
+    </div>
+    <div class="field">
+      <label>App used</label>
+      <input type="text" id="vrApp" placeholder="XR Workout">
+    </div>
+  </div>
+  <div class="row3">
+    <div class="field">
+      <label>Avg HR</label>
+      <input type="number" id="avgHr" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Max HR</label>
+      <input type="number" id="maxHr" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Calories</label>
+      <input type="number" id="calories" placeholder="0">
+    </div>
+  </div>
+  <div class="field">
+    <label>Dominant zone</label>
+    <select id="zone">
+      <option value="Z1">Zone 1 — Recovery</option>
+      <option value="Z2">Zone 2 — Aerobic base</option>
+      <option value="Z3">Zone 3 — Tempo</option>
+      <option value="Z4">Zone 4 — Threshold</option>
+      <option value="Z5">Zone 5 — Max</option>
+    </select>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Walking (H10)</div>
+  <div class="row3">
+    <div class="field">
+      <label>Duration (min)</label>
+      <input type="number" id="walkDuration" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Avg HR</label>
+      <input type="number" id="walkAvgHr" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Calories</label>
+      <input type="number" id="walkCalories" placeholder="0">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Diet / Body</div>
+  <div class="field">
+    <label>Rest day?</label>
+    <select id="restDay">
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </div>
+
+  <div id="measurementsSection">
+    <div class="row2">
+      <div class="field">
+        <label>Weight (kg)</label>
+        <input type="number" step="0.1" id="weight" placeholder="—">
+      </div>
+      <div class="field">
+        <label>Waist (inch)</label>
+        <input type="number" step="0.1" id="waist" placeholder="—">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Stomach (inch)</label>
+        <input type="number" step="0.1" id="stomach" placeholder="—">
+      </div>
+      <div class="field">
+        <label>VO2max (Polar test) — every 3–4 wks</label>
+        <input type="number" step="0.1" id="vo2max" placeholder="—">
+      </div>
+    </div>
+  </div>
+  <div class="field" id="measurementsNote" style="display:none;">
+    <label style="color:var(--text-dim);">Body measurements are logged on Sundays only</label>
+  </div>
+  <div class="field">
+    <label>Notes (soreness, energy, sleep — optional)</label>
+    <textarea id="notes" placeholder="Anything worth remembering about today"></textarea>
+  </div>
+
+  <button class="btn" id="saveBtn">Save Day</button>
+  <div class="status" id="status"></div>
+</div>
+
+<button class="btn btn-secondary" id="exportBtn">Export Full Week (text summary)</button>
+<div class="export-box" id="exportBox" style="display:none;"></div>
+
+</div>
+
+<!-- ================= SETTINGS VIEW ================= -->
+<div id="settingsView" class="hidden">
+  <h1>Settings</h1>
+  <div id="settingsLocked" class="locked-note hidden">Guest cannot access settings.</div>
+
+  <div id="settingsBody" class="panel">
+    <div class="section-label">Account</div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="usernameInput" placeholder="choose a username">
+    </div>
+    <button class="btn" id="saveUsernameBtn">Save Username</button>
+    <div class="status" id="usernameStatus"></div>
+
+    <div class="divider"></div>
+    <div class="section-label">Sync</div>
+    <div class="field">
+      <label>Status</label>
+      <input type="text" id="syncInfo" disabled>
+    </div>
+    <button class="btn btn-secondary" id="downloadBackupBtn">⬇ Download Full Backup (JSON)</button>
+
+    <div class="divider"></div>
+    <div class="section-label">Danger Zone</div>
+    <button class="btn btn-danger" id="clearWeekBtn">Clear Current Week</button>
+    <div style="margin-top:10px;">
+      <label>Type DELETE to confirm clearing ALL data</label>
+      <input type="text" id="confirmDeleteInput" placeholder="DELETE">
+      <button class="btn btn-danger" id="clearAllBtn" style="margin-top:8px;">Clear ALL Data</button>
+    </div>
+  </div>
+
+  <button class="btn btn-secondary" id="backToTrackerBtn" style="margin-top:16px;">← Back to Tracker</button>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ====== PASTE YOUR FIREBASE CONFIG HERE ======
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// ==============================================
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+</script>
+
+<script>
+const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+let currentDay = days[0];
+let weekData = {};
+let isGuest = false;
+let currentUid = null;
+
+const fields = ["warmup","pullups","bands","vrDuration","vrApp","avgHr","maxHr","calories","zone",
+  "walkDuration","walkAvgHr","walkCalories",
+  "weight","waist","stomach","vo2max","restDay","notes"];
+
+function getMonday() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+  const monday = new Date(now.setDate(diff));
+  return monday.toISOString().slice(0,10);
+}
+const weekKey = "week_" + getMonday();
+
+// ---------- Demo data for guest mode ----------
+function demoWeekData() {
+  return {
+    Mon: {saved:true, warmup:"yes", pullups:"4x6", bands:"rows 3x12", vrDuration:"45", vrApp:"XR Workout",
+      avgHr:"128", maxHr:"162", calories:"410", zone:"Z2",
+      walkDuration:"30", walkAvgHr:"105", walkCalories:"140",
+      restDay:"no", notes:"Felt strong today"},
+    Wed: {saved:true, warmup:"yes", pullups:"5x5", bands:"curls 3x15", vrDuration:"31", vrApp:"Thrill of the Fight 2",
+      avgHr:"132", maxHr:"177", calories:"286", zone:"Z3",
+      walkDuration:"25", walkAvgHr:"100", walkCalories:"110",
+      restDay:"no", notes:""},
+    Fri: {saved:true, restDay:"yes", walkDuration:"35", walkAvgHr:"98", walkCalories:"150", notes:"Rest day, easy walk"},
+    Sun: {saved:true, restDay:"yes", weight:"83.4", waist:"39.5", stomach:"41.5", vo2max:"37",
+      walkDuration:"40", walkAvgHr:"102", walkCalories:"160", notes:"Weekly measurements"}
+  };
+}
+
+// ---------- Login ----------
+document.getElementById("loginBtn").addEventListener("click", attemptLogin);
+document.getElementById("loginPass").addEventListener("keydown", e => { if (e.key === "Enter") attemptLogin(); });
+
+async function attemptLogin() {
+  const idVal = document.getElementById("loginId").value.trim();
+  const passVal = document.getElementById("loginPass").value;
+  const errEl = document.getElementById("loginError");
+  errEl.textContent = "";
+
+  if (!idVal || !passVal) {
+    errEl.textContent = "Enter both fields.";
+    return;
+  }
+
+  if (idVal.toLowerCase() === "guest" && passVal === "guest") {
+    isGuest = true;
+    weekData = demoWeekData();
+    enterApp();
+    return;
+  }
+
+  try {
+    let email = idVal;
+    if (!idVal.includes("@")) {
+      const unameDoc = await db.collection("usernames").doc(idVal.toLowerCase()).get();
+      if (!unameDoc.exists) {
+        errEl.textContent = "Invalid username or password.";
+        return;
+      }
+      email = unameDoc.data().email;
+    }
+    const cred = await auth.signInWithEmailAndPassword(email, passVal);
+    currentUid = cred.user.uid;
+    isGuest = false;
+    await loadWeek();
+    enterApp();
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = "Invalid username or password.";
+  }
+}
+
+function enterApp() {
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("appView").classList.remove("hidden");
+  document.getElementById("guestBanner").classList.toggle("hidden", !isGuest);
+  document.getElementById("saveBtn").disabled = isGuest;
+  document.getElementById("syncStatus").textContent = isGuest ? "Guest mode (read-only)" : "Connected";
+  renderTabs();
+  loadDay();
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  if (!isGuest) await auth.signOut();
+  isGuest = false;
+  currentUid = null;
+  weekData = {};
+  document.getElementById("loginId").value = "";
+  document.getElementById("loginPass").value = "";
+  document.getElementById("appView").classList.add("hidden");
+  document.getElementById("settingsView").classList.add("hidden");
+  document.getElementById("loginView").classList.remove("hidden");
+});
+
+// ---------- Tracker rendering ----------
+function renderTabs() {
+  const container = document.getElementById("dayTabs");
+  container.innerHTML = "";
+  days.forEach(d => {
+    const btn = document.createElement("button");
+    btn.className = "day-tab" + (d === currentDay ? " active" : "") + (weekData[d] ? " has-data" : "");
+    btn.textContent = d;
+    btn.onclick = () => { currentDay = d; loadDay(); renderTabs(); };
+    container.appendChild(btn);
+  });
+}
+
+function loadDay() {
+  const data = weekData[currentDay] || {};
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    el.value = data[f] !== undefined ? data[f] : (el.tagName === "SELECT" ? el.options[0].value : "");
+  });
+  document.getElementById("status").textContent = data.saved ? "Saved for " + currentDay : "";
+
+  const isSunday = currentDay === "Sun";
+  document.getElementById("measurementsSection").style.display = isSunday ? "block" : "none";
+  document.getElementById("measurementsNote").style.display = isSunday ? "none" : "block";
+}
+
+async function loadWeek() {
+  try {
+    const doc = await db.collection("training-log").doc(weekKey).get();
+    weekData = doc.exists ? doc.data() : {};
+  } catch (e) {
+    console.error(e);
+    weekData = {};
+    document.getElementById("syncStatus").textContent = "Sync error";
+  }
+  renderTabs();
+  loadDay();
+}
+
+async function saveDay() {
+  if (isGuest) {
+    document.getElementById("status").textContent = "Guest cannot save data to database.";
+    return;
+  }
+  const data = { saved: true };
+  fields.forEach(f => {
+    data[f] = document.getElementById(f).value;
+  });
+  weekData[currentDay] = data;
+  try {
+    await db.collection("training-log").doc(weekKey).set(weekData);
+    document.getElementById("status").textContent = "Saved for " + currentDay + " — synced";
+    renderTabs();
+  } catch (e) {
+    console.error(e);
+    document.getElementById("status").textContent = "Save failed — check connection";
+  }
+}
+document.getElementById("saveBtn").addEventListener("click", saveDay);
+
+// ---------- Export ----------
+function exportWeek() {
+  let out = "WEEKLY TRAINING LOG (" + getMonday() + ")" + (isGuest ? " [GUEST DEMO DATA]" : "") + "\n";
+  out += "=".repeat(40) + "\n\n";
+
+  let loggedDays = 0, totalCalories = 0, totalVrMinutes = 0, totalWalkMinutes = 0;
+  let hrSum = 0, hrCount = 0, trainingDays = 0, restDays = 0;
+
+  days.forEach(d => {
+    const data = weekData[d];
+    if (!data || !data.saved) return;
+    loggedDays++;
+    if (data.restDay === "yes") { restDays++; } else { trainingDays++; }
+    if (data.calories) totalCalories += Number(data.calories) || 0;
+    if (data.walkCalories) totalCalories += Number(data.walkCalories) || 0;
+    if (data.vrDuration) totalVrMinutes += Number(data.vrDuration) || 0;
+    if (data.walkDuration) totalWalkMinutes += Number(data.walkDuration) || 0;
+    if (data.avgHr) { hrSum += Number(data.avgHr) || 0; hrCount++; }
+  });
+
+  out += "WEEK SUMMARY\n";
+  out += "  Days logged: " + loggedDays + " (training: " + trainingDays + ", rest: " + restDays + ")\n";
+  out += "  Total calories burned (VR + walking): " + totalCalories + "\n";
+  out += "  Total VR minutes: " + totalVrMinutes + "\n";
+  out += "  Total walking minutes: " + totalWalkMinutes + "\n";
+  out += "  Avg HR across VR sessions: " + (hrCount ? Math.round(hrSum / hrCount) : "-") + "\n\n";
+
+  days.forEach(d => {
+    const data = weekData[d];
+    if (!data || !data.saved) return;
+    out += d.toUpperCase() + "\n";
+    if (data.restDay === "yes") { out += "  Rest day\n"; }
+    else {
+      out += "  Warmup: " + (data.warmup || "-") + "\n";
+      out += "  Pull-ups: " + (data.pullups || "-") + "\n";
+      out += "  Bands: " + (data.bands || "-") + "\n";
+      out += "  VR: " + (data.vrDuration || "0") + " min (" + (data.vrApp || "-") + ")\n";
+      out += "  HR avg/max: " + (data.avgHr || "-") + "/" + (data.maxHr || "-") + "\n";
+      out += "  Calories: " + (data.calories || "-") + "\n";
+      out += "  Dominant zone: " + (data.zone || "-") + "\n";
+    }
+    if (data.walkDuration || data.walkCalories) {
+      out += "  Walk: " + (data.walkDuration || "0") + " min, avg HR " + (data.walkAvgHr || "-") + ", " + (data.walkCalories || "0") + " kcal\n";
+    }
+    if (d === "Sun" && (data.weight || data.waist || data.stomach || data.vo2max)) {
+      out += "  --- Sunday Measurements ---\n";
+      if (data.weight) out += "  Weight: " + data.weight + " kg\n";
+      if (data.waist) out += "  Waist: " + data.waist + " in\n";
+      if (data.stomach) out += "  Stomach: " + data.stomach + " in\n";
+      if (data.vo2max) out += "  VO2max: " + data.vo2max + "\n";
+    }
+    if (data.notes) out += "  Notes: " + data.notes + "\n";
+    out += "\n";
+  });
+
+  if (loggedDays === 0) out += "No days logged yet this week.\n";
+  const box = document.getElementById("exportBox");
+  box.textContent = out;
+  box.style.display = "block";
+}
+document.getElementById("exportBtn").addEventListener("click", exportWeek);
+
+// ---------- Settings ----------
+document.getElementById("settingsBtn").addEventListener("click", async () => {
+  document.getElementById("appView").classList.add("hidden");
+  document.getElementById("settingsView").classList.remove("hidden");
+  document.getElementById("settingsLocked").classList.toggle("hidden", !isGuest);
+  document.getElementById("settingsBody").classList.toggle("hidden", isGuest);
+  if (!isGuest && currentUid) {
+    document.getElementById("syncInfo").value = "Project: " + firebaseConfig.projectId + " | UID: " + currentUid.slice(0,8) + "...";
+    try {
+      const profileDoc = await db.collection("profile").doc(currentUid).get();
+      document.getElementById("usernameInput").value = profileDoc.exists ? (profileDoc.data().username || "") : "";
+    } catch (e) { console.error(e); }
+  }
+});
+document.getElementById("backToTrackerBtn").addEventListener("click", () => {
+  document.getElementById("settingsView").classList.add("hidden");
+  document.getElementById("appView").classList.remove("hidden");
+});
+
+document.getElementById("saveUsernameBtn").addEventListener("click", async () => {
+  if (isGuest) return;
+  const newUsername = document.getElementById("usernameInput").value.trim().toLowerCase();
+  const statusEl = document.getElementById("usernameStatus");
+  if (!newUsername) { statusEl.textContent = "Enter a username."; return; }
+  try {
+    const profileDoc = await db.collection("profile").doc(currentUid).get();
+    const oldUsername = profileDoc.exists ? profileDoc.data().username : null;
+    const email = auth.currentUser.email;
+
+    await db.collection("usernames").doc(newUsername).set({ email: email });
+    await db.collection("profile").doc(currentUid).set({ username: newUsername });
+    if (oldUsername && oldUsername !== newUsername) {
+      await db.collection("usernames").doc(oldUsername).delete();
+    }
+    statusEl.textContent = "Username saved: " + newUsername;
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = "Failed to save username.";
+  }
+});
+
+document.getElementById("downloadBackupBtn").addEventListener("click", async () => {
+  if (isGuest) return;
+  try {
+    const snapshot = await db.collection("training-log").get();
+    const backup = {};
+    snapshot.forEach(doc => { backup[doc.id] = doc.data(); });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "training-log-backup-" + new Date().toISOString().slice(0,10) + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error(e);
+    alert("Backup failed: " + e.message);
+  }
+});
+
+document.getElementById("clearWeekBtn").addEventListener("click", async () => {
+  if (isGuest) return;
+  if (!confirm("Clear all data for the current week? This cannot be undone.")) return;
+  try {
+    await db.collection("training-log").doc(weekKey).delete();
+    weekData = {};
+    renderTabs();
+    loadDay();
+    alert("Current week cleared.");
+  } catch (e) {
+    console.error(e);
+    alert("Failed to clear: " + e.message);
+  }
+});
+
+document.getElementById("clearAllBtn").addEventListener("click", async () => {
+  if (isGuest) return;
+  const confirmVal = document.getElementById("confirmDeleteInput").value;
+  if (confirmVal !== "DELETE") {
+    alert('Type DELETE in the box to confirm.');
+    return;
+  }
+  try {
+    const snapshot = await db.collection("training-log").get();
+    const batchDeletes = [];
+    snapshot.forEach(doc => batchDeletes.push(doc.ref.delete()));
+    await Promise.all(batchDeletes);
+    weekData = {};
+    document.getElementById("confirmDeleteInput").value = "";
+    renderTabs();
+    loadDay();
+    alert("All training data cleared.");
+  } catch (e) {
+    console.error(e);
+    alert("Failed to clear all: " + e.message);
+  }
+});
+</script>
+
+</body>
+</html>
